@@ -166,6 +166,9 @@ class StockfishPlugin(private val context: com.example.openeval.MainActivity) {
 
     private fun startStockfish() {
         val sfPath = File("${context.getExternalFilesDir(null)}/stockfish")
+        if (!sfPath.exists() || sfPath.length() == 0L) {
+            throw Exception("Stockfish binary not found or empty")
+        }
         val processBuilder = ProcessBuilder(sfPath.absolutePath)
         processBuilder.directory(context.getExternalFilesDir(null))
         processBuilder.redirectErrorStream(true)

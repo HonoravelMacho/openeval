@@ -4,8 +4,11 @@ import 'package:openeval/core/theme/app_theme.dart';
 import 'package:openeval/core/theme/board_themes/board_theme_provider.dart';
 import 'package:openeval/core/theme/piece_sets/piece_set_provider.dart';
 import 'package:openeval/features/game_importer/screens/game_importer_screen.dart';
+import 'package:openeval/features/game_importer/controllers/game_importer_controller.dart';
 import 'package:openeval/features/analysis/screens/analysis_screen.dart';
+import 'package:openeval/features/analysis/controllers/analysis_controller.dart';
 import 'package:openeval/features/bot_play/screens/bot_play_screen.dart';
+import 'package:openeval/features/bot_play/controllers/bot_controller.dart';
 import 'package:openeval/features/local_multiplayer/screens/local_mp_screen.dart';
 import 'package:openeval/features/settings/controllers/settings_controller.dart';
 import 'package:openeval/features/settings/screens/settings_screen.dart';
@@ -20,6 +23,9 @@ class App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BoardThemeProvider()),
         ChangeNotifierProvider(create: (_) => PieceSetProvider()),
         ChangeNotifierProvider(create: (_) => SettingsController()),
+        ChangeNotifierProvider(create: (_) => GameImporterController()),
+        ChangeNotifierProvider(create: (_) => AnalysisController()),
+        ChangeNotifierProvider(create: (_) => BotController()),
       ],
       child: MaterialApp(
         title: 'OpenEval',

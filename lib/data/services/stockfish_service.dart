@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -17,17 +18,19 @@ class StockfishService {
   Stream<Map<String, dynamic>> get analysisStream => _analysisStream.stream;
 
   Future<void> initialize() async {
+    if (_isInitialized) return;
     try {
       final dir = await getApplicationDocumentsDirectory();
       final result = await _channel.invokeMethod<String>('initialize', {
         'appDir': dir.path,
       });
       if (result != null && result.startsWith('error')) {
-        throw Exception(result);
+        debugPrint('Stockfish init returned error: $result');
+        return;
       }
       _isInitialized = true;
-    } on PlatformException catch (e) {
-      throw Exception('Failed to initialize Stockfish: ${e.message}');
+    } catch (e) {
+      debugPrint('Stockfish init failed: $e');
     }
   }
 

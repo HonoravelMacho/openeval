@@ -5,7 +5,11 @@ import 'package:openeval/data/services/stockfish_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await StockfishService.instance.initialize();
+  try {
+    await StockfishService.instance.initialize();
+  } catch (e) {
+    debugPrint('Stockfish initialization failed: $e');
+  }
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
