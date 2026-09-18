@@ -1,0 +1,27 @@
+# Flutter/Dart
+.dart_tool/
+*.o
+*.app
+*.ipa
+*.apk
+*.aab
+build/
+flutter_assets/
+.icon/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+.env
+.env.local
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.log
+coverage/
+**/*.g.dart
