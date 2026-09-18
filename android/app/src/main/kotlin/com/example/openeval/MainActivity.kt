@@ -10,13 +10,16 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        stockfishPlugin = StockfishPlugin(this)
         val channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stockfish_engine")
         
         channel.setMethodCallHandler { call, result ->
+            val context = this
             when (call.method) {
                 "initialize" -> {
                     val appDir = call.argument<String>("appDir") ?: ""
+                    if (stockfishPlugin == null) {
+                        stockfishPlugin = StockfishPlugin(context)
+                    }
                     stockfishPlugin?.initialize(appDir) { status ->
                         result.success(status)
                     }
@@ -25,7 +28,9 @@ class MainActivity : FlutterActivity() {
                     val elo = call.argument<Int>("elo") ?: 1500
                     val depth = call.argument<Int>("depth") ?: 25
                     val infinite = call.argument<Boolean>("infinite") ?: false
-                    val skill = call.argument<String>("skill")
+                    if (stockfishPlugin == null) {
+                        stockfishPlugin = StockfishPlugin(context)
+                    }
                     stockfishPlugin?.configure(elo, depth, infinite) { status ->
                         result.success(status)
                     }

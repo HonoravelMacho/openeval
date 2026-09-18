@@ -1,33 +1,39 @@
 package com.example.openeval.stockfish
 
-import android.content.Context
-import android.os.Process
-import java.io.*
-import java.util.concurrent.*
+import android.os.Handler
+import android.os.Looper
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.concurrent.Executors
 
-class StockfishPlugin(private val context: Context) {
+class StockfishPlugin(private val context: com.example.openeval.MainActivity) {
     private var stockfishProcess: Process? = null
     private var reader: BufferedReader? = null
     private var writer: BufferedWriter? = null
     private val executor = Executors.newSingleThreadExecutor()
-    private val handler = Handler(android.os.Looper.getMainLooper())
+    private val handler = Handler(Looper.getMainLooper())
     private var isConfigured = false
     private var currentElo = 1500
     private var currentDepth = 25
 
-    fun initialize(appDir: String, result: (String) -> Unit) {
+    fun initialize(appDir: String, callback: (String) -> Unit) {
         executor.execute {
             try {
                 copyStockfishBinary(appDir)
                 startStockfish()
-                result("success")
+                handler.post { callback("success") }
             } catch (e: Exception) {
-                result("error: ${e.message}")
+                handler.post { callback("error: ${e.message}") }
             }
         }
     }
 
-    fun configure(elo: Int, depth: Int, infinite: Boolean, result: (String) -> Unit) {
+    fun configure(elo: Int, depth: Int, infinite: Boolean, callback: (String) -> Unit) {
         currentElo = elo
         currentDepth = depth
         executor.execute {
@@ -37,14 +43,14 @@ class StockfishPlugin(private val context: Context) {
                 sendCommand("setoption name UCI_Elo value $elo")
                 sendCommand("setoption name Skill Level value ${calculateSkill(elo)}")
                 isConfigured = true
-                result("success")
+                handler.post { callback("success") }
             } catch (e: Exception) {
-                result("error: ${e.message}")
+                handler.post { callback("error: ${e.message}") }
             }
         }
     }
 
-    fun setPosition(fen: String, moves: List<String>, result: (String) -> Unit) {
+    fun setPosition(fen: String, moves: List<String>, callback: (String) -> Unit) {
         executor.execute {
             try {
                 val cmd = if (fen == "startpos") {
@@ -53,9 +59,9 @@ class StockfishPlugin(private val context: Context) {
                     "position fen $fen moves ${moves.joinToString(" ")}"
                 }
                 sendCommand(cmd)
-                result("success")
+                handler.post { callback("success") }
             } catch (e: Exception) {
-                result("error: ${e.message}")
+                handler.post { callback("error: ${e.message}") }
             }
         }
     }
@@ -66,31 +72,33 @@ class StockfishPlugin(private val context: Context) {
                 val cmd = if (infinite) "go infinite" else "go depth $depth"
                 sendCommand(cmd)
                 
-                val readerThread = Thread {
-                    try {
-                        while (true) {
-                            val line = reader?.readLine() ?: break
-                            if (line.startsWith("bestmove")) {
-                                val parts = line.split(" ")
-                                val bestMove = if (parts.size >= 2) parts[1] else ""
-                                callback(mapOf("type" to "bestmove", "move" to bestMove))
-                                break
-                            } else if (line.startsWith("info")) {
-                                val info = parseInfoLine(line)
-                                if (info.isNotEmpty()) {
-                                    callback(info)
+                val readerThread = object : Thread() {
+                    override fun run() {
+                        try {
+                            while (true) {
+                                val line = reader?.readLine() ?: break
+                                if (line.startsWith("bestmove")) {
+                                    val parts = line.split(" ")
+                                    val bestMove = if (parts.size >= 2) parts[1] else ""
+                                    handler.post { callback(mapOf("type" to "bestmove", "move" to bestMove)) }
+                                    break
+                                } else if (line.startsWith("info")) {
+                                    val info = parseInfoLine(line)
+                                    if (info.isNotEmpty()) {
+                                        handler.post { callback(info) }
+                                    }
+                                } else if (line == "readyok") {
+                                    handler.post { callback(mapOf("type" to "readyok")) }
                                 }
-                            } else if (line.startsWith("readyok")) {
-                                callback(mapOf("type" to "readyok"))
                             }
+                        } catch (e: Exception) {
+                            handler.post { callback(mapOf("type" to "error", "message" to e.message ?: "")) }
                         }
-                    } catch (e: Exception) {
-                        callback(mapOf("type" to "error", "message" to e.message))
                     }
                 }
                 readerThread.start()
             } catch (e: Exception) {
-                callback(mapOf("type" to "error", "message" to e.message))
+                handler.post { callback(mapOf("type" to "error", "message" to e.message ?: "")) }
             }
         }
     }
@@ -99,18 +107,20 @@ class StockfishPlugin(private val context: Context) {
         executor.execute {
             try {
                 sendCommand("go depth $depth")
-                val readerThread = Thread {
-                    try {
-                        while (true) {
-                            val line = reader?.readLine() ?: break
-                            if (line.startsWith("bestmove")) {
-                                val parts = line.split(" ")
-                                callback(if (parts.size >= 2) parts[1] else "")
-                                break
+                val readerThread = object : Thread() {
+                    override fun run() {
+                        try {
+                            while (true) {
+                                val line = reader?.readLine() ?: break
+                                if (line.startsWith("bestmove")) {
+                                    val parts = line.split(" ")
+                                    callback(if (parts.size >= 2) parts[1] else "")
+                                    break
+                                }
                             }
+                        } catch (e: Exception) {
+                            callback("")
                         }
-                    } catch (e: Exception) {
-                        callback("")
                     }
                 }
                 readerThread.start()
@@ -160,18 +170,8 @@ class StockfishPlugin(private val context: Context) {
         processBuilder.directory(context.getExternalFilesDir(null))
         processBuilder.redirectErrorStream(true)
         stockfishProcess = processBuilder.start()
-        reader = BufferedReader(InputStreamReader(stockfishProcess?.inputStream))
-        writer = BufferedWriter(OutputStreamWriter(stockfishProcess?.outputStream))
-        
-        // Read initial readyok
-        executor.execute {
-            try {
-                while (true) {
-                    val line = reader?.readLine() ?: break
-                    if (line == "uciok") break
-                }
-            } catch (e: Exception) {}
-        }
+        reader = BufferedReader(InputStreamReader(stockfishProcess?.inputStream!!))
+        writer = BufferedWriter(OutputStreamWriter(stockfishProcess?.outputStream!!))
     }
 
     private fun sendCommand(command: String) {
