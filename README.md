@@ -19,7 +19,8 @@ OpenEval is a powerful, fully local chess analysis engine for Android. Import ga
 - **Full Game Metadata**: Event, players, Elo ratings, results
 
 ### 🧠 Engine de Análise Local (Stockfish)
-- **100% Offline & Local**: All analysis happens on your device
+- **100% Offline & Local**: All analysis happens on your device via native Kotlin plugin
+- **MethodChannel Integration**: Real-time UCI protocol communication with Flutter
 - **Adjustable Depth**: Set analysis depth from 15 to 40+ ply
 - **Infinite Mode**: No limits on analysis time or depth
 - **Isolate-Based Processing**: Runs in separate Dart isolates for smooth UI
@@ -63,6 +64,8 @@ lib/
 ├── data/                          # Data layer
 │   ├── models/                    # Data models
 │   ├── services/                  # API & engine services
+│   │   ├── stockfish_service.dart # MethodChannel integration
+│   │   └── api_manager.dart       # Chess.com API
 │   └── repositories/              # Data repositories
 ├── engine/                        # Chess engine layer
 │   ├── stockfish/                 # Stockfish UCI integration
@@ -165,23 +168,20 @@ Contributions are welcome! Please see the [Contributing Guide](CONTRIBUTING.md) 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+4. Push to your branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-### Adding Board Themes & Piece Sets
-See the sections above for detailed instructions on adding visual themes.
 
 ---
 
 ## 📱 Supported Platforms
-- [x] Android (API 28+)
+- [x] Android (API 21+)
 
 ---
 
 ## 🔗 Links
 - [GitHub Repository](https://github.com/HonoravelMacho/openeval)
 - [Stockfish Chess Engine](https://stockfishchess.org)
-- [Chess.com PubAPI](https://web.archive.org/web/20240000000000/https://api.chess.com/pub)
+- [Chess.com PubAPI](https://api.chess.com/pub)
 - [Flutter Documentation](https://flutter.dev)
 
 ---
