@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:openeval/widgets/elo_slider.dart';
+import 'package:provider/provider.dart';
+import '../controllers/bot_controller.dart';
+import '../widgets/elo_slider.dart';
 
 class BotPlayScreen extends StatelessWidget {
   const BotPlayScreen({super.key});
@@ -8,21 +10,24 @@ class BotPlayScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Play vs Bot')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            const Text('Play against Stockfish', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            const EloSlider(elo: 1500, onEloChanged: _noop),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Start Match'),
-            ),
-          ],
-        ),
+      body: Builder(
+        builder: (context) {
+          final controller = context.watch<BotController>();
+          return Column(
+            children: [
+              const SizedBox(height: 24),
+              const EloSlider(elo: 1500, onEloChanged: _noop),
+              const SizedBox(height: 24),
+              Text(controller.status),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => controller.startGame(),
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('Start Match'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

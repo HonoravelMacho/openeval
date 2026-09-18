@@ -14,6 +14,7 @@ class AnalysisController extends ChangeNotifier {
   int _currentDepth = 25;
   bool _isAnalyzing = false;
   String _status = 'Ready';
+  String _currentFen = 'startpos';
 
   AnalysisController({
     StockfishEngine? engine,
@@ -26,8 +27,10 @@ class AnalysisController extends ChangeNotifier {
   int get currentDepth => _currentDepth;
   bool get isAnalyzing => _isAnalyzing;
   String get status => _status;
+  String get currentFen => _currentFen;
 
   Future<void> startAnalysis(String fen, {int depth = 25, bool infinite = false}) async {
+    _currentFen = fen;
     _isAnalyzing = true;
     _status = 'Analyzing...';
     _currentDepth = depth;
@@ -49,7 +52,7 @@ class AnalysisController extends ChangeNotifier {
       notifyListeners();
     });
 
-    await _engine.analyzePosition(fen, depth: depth, infinite: infinite);
+    _engine.startAnalysis(fen, depth: depth, infinite: infinite);
   }
 
   void _updateAnalysis(Map<String, dynamic> data) {
@@ -62,7 +65,7 @@ class AnalysisController extends ChangeNotifier {
         classification: evalScore.classification,
         depth: data['depth'] ?? 0,
         timeMs: (data['time'] ?? 0).toDouble(),
-        pv: data['pv'],
+        pv: data['pv'] as String?,
       ));
       notifyListeners();
     }

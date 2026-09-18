@@ -43,6 +43,11 @@ jobs:
           FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
+      - name: Create asset directories
+        run: |
+          mkdir -p assets/images assets/themes assets/pieces assets/boards
+          touch assets/images/.gitkeep assets/themes/.gitkeep assets/pieces/.gitkeep assets/boards/.gitkeep
+
       - name: Install Android platform and build-tools
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true

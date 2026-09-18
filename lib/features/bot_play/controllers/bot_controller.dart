@@ -5,7 +5,7 @@ import 'package:openeval/engine/stockfish/stockfish_config.dart';
 
 class BotController extends ChangeNotifier {
   final StockfishEngine _engine;
-  late int _elo;
+  int _elo;
   bool _isPlaying = false;
   String _status = 'Ready';
 

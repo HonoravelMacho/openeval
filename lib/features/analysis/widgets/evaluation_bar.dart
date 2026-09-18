@@ -1,27 +1,45 @@
 import 'package:flutter/material.dart';
 
 class EvaluationBar extends StatelessWidget {
-  const EvaluationBar({super.key});
+  final List<double> evalHistory;
+
+  const EvaluationBar({super.key, this.evalHistory = const []});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60,
+      height: 80,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: LinearProgressIndicator(
-              value: 0.5,
+          if (evalHistory.isNotEmpty)
+            LinearProgressIndicator(
+              value: (evalHistory.last / 100).abs().clamp(0.0, 1.0),
               backgroundColor: Colors.grey.shade300,
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A73E8)),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                evalHistory.last >= 0 ? const Color(0xFF4CAF50) : const Color(0xFFD32F2F),
+              ),
               minHeight: 24,
             ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Eval', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              Text(
+                evalHistory.isNotEmpty ? '${evalHistory.last >= 0 ? '+' : ''}${evalHistory.last.toStringAsFixed(1)}' : '--',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: evalHistory.isNotEmpty
+                      ? (evalHistory.last >= 0 ? const Color(0xFF4CAF50) : const Color(0xFFD32F2F))
+                      : Colors.grey,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          const Text('Eval', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(width: 8),
-          const Text('+1.5', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4CAF50))),
         ],
       ),
     );

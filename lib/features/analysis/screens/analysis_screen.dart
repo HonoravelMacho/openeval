@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:openeval/widgets/evaluation_bar.dart';
-import 'package:openeval/widgets/move_list_widget.dart';
-import 'package:openeval/widgets/precision_graph.dart';
+import 'package:provider/provider.dart';
+import '../controllers/analysis_controller.dart';
+import '../widgets/evaluation_bar.dart';
+import '../widgets/move_list_widget.dart';
+import '../widgets/precision_graph.dart';
 
 class AnalysisScreen extends StatelessWidget {
   const AnalysisScreen({super.key});
@@ -14,16 +16,24 @@ class AnalysisScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.stop),
-            onPressed: () {},
+            onPressed: () => context.read<AnalysisController>().stopAnalysis(),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const EvaluationBar(),
-          Expanded(child: MoveListWidget()),
-          const PrecisionGraph(),
-        ],
+      body: Consumer<AnalysisController>(
+        builder: (context, controller, _) {
+          final evalHistory = controller.analyses.map((a) => a.score.toDouble()).toList();
+          return Column(
+            children: [
+              EvaluationBar(evalHistory: evalHistory),
+              const SizedBox(height: 4),
+              if (controller.isAnalyzing) const LinearProgressIndicator(),
+              const SizedBox(height: 4),
+              Expanded(child: MoveListWidget(analyses: controller.analyses)),
+              const PrecisionGraph(),
+            ],
+          );
+        },
       ),
     );
   }
