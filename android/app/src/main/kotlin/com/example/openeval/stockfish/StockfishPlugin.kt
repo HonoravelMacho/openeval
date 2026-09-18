@@ -5,10 +5,9 @@ import android.os.Looper
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.util.concurrent.Executors
 
 class StockfishPlugin(private val context: com.example.openeval.MainActivity) {
@@ -80,7 +79,8 @@ class StockfishPlugin(private val context: com.example.openeval.MainActivity) {
                                 if (line.startsWith("bestmove")) {
                                     val parts = line.split(" ")
                                     val bestMove = if (parts.size >= 2) parts[1] else ""
-                                    handler.post { callback(mapOf("type" to "bestmove", "move" to bestMove)) }
+                                    val resultMap: Map<String, Any> = mapOf("type" to "bestmove", "move" to bestMove)
+                                    handler.post { callback(resultMap) }
                                     break
                                 } else if (line.startsWith("info")) {
                                     val info = parseInfoLine(line)
@@ -88,17 +88,17 @@ class StockfishPlugin(private val context: com.example.openeval.MainActivity) {
                                         handler.post { callback(info) }
                                     }
                                 } else if (line == "readyok") {
-                                    handler.post { callback(mapOf("type" to "readyok")) }
+                                    handler.post { callback(mapOf<String, Any>("type" to "readyok")) }
                                 }
                             }
                         } catch (e: Exception) {
-                            handler.post { callback(mapOf("type" to "error", "message" to e.message ?: "")) }
+                            handler.post { callback(mapOf<String, Any>("type" to "error", "message" to (e.message ?: ""))) }
                         }
                     }
                 }
                 readerThread.start()
             } catch (e: Exception) {
-                handler.post { callback(mapOf("type" to "error", "message" to e.message ?: "")) }
+                handler.post { callback(mapOf<String, Any>("type" to "error", "message" to (e.message ?: ""))) }
             }
         }
     }
